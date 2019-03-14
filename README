@@ -1,0 +1,4 @@
+This directory contains the source code of Kleaver, a command-line tool to help
+Linux kernel developers in managing out-of-tree kernel modules.
+
+This is not an officially supported Google product.
