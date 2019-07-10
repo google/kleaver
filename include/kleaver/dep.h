@@ -21,6 +21,7 @@ struct dep {
 	struct strbuf	worktree;
 	struct strbuf	build_cmd;
 	struct strbuf	build_dir;
+	struct strbuf	commit;
 };
 
 extern struct list_head	all_deps;
@@ -29,3 +30,4 @@ extern void dep_init(struct dep *dep);
 extern void dep_release(struct dep *dep);
 extern void dep_fetch(struct dep *dep);
 extern void dep_checkout(struct dep *dep);
+extern void dep_resolve_ref(struct dep *dep);

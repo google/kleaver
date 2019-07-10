@@ -16,6 +16,20 @@
 #include <kleaver/extcmd.h>
 
 struct strbuf pkg_build_cmd = STRBUF_INIT;
+struct strbuf pkg_presubmit_cmd = STRBUF_INIT;
+
+static struct strbuf pkg_commit = STRBUF_INIT;
+
+static void init_pkg_commit(void)
+{
+	struct extcmd cmd;
+
+	extcmd_init(&cmd, "git rev-parse HEAD");
+	cmd.output = &pkg_commit;
+	extcmd_run(&cmd);
+	extcmd_release(&cmd);
+	strbuf_trim_trailing_newline(&pkg_commit);
+}
 
 static void expand(const struct strbuf *build_cmd, const struct dep *dep,
 		   struct strbuf *cmd)
@@ -34,6 +48,10 @@ static void expand(const struct strbuf *build_cmd, const struct dep *dep,
 				strbuf_addbuf(cmd, &dep->build_dir);
 			else if (ch == 'M')
 				strbuf_addstr(cmd, PWD);
+			else if (ch == 'C')
+				strbuf_addbuf(cmd, &pkg_commit);
+			else if (ch == 'H')
+				strbuf_addbuf(cmd, &dep->commit);
 			else
 				/* TODO report error */;
 			replace = 0;
@@ -49,12 +67,41 @@ static void expand(const struct strbuf *build_cmd, const struct dep *dep,
 		/* TODO report error */;
 }
 
+int kleaver_presubmit(void)
+{
+	struct strbuf expanded_cmd = STRBUF_INIT;
+	struct strbuf output = STRBUF_INIT;
+	struct extcmd cmd;
+	struct dep *dep;
+
+	init_pkg_commit();
+	list_for_each_entry(dep, &all_deps, all_deps) {
+		dep_resolve_ref(dep);
+		strbuf_reset(&expanded_cmd);
+		strbuf_reset(&output);
+		expand(&pkg_presubmit_cmd, dep, &expanded_cmd);
+		extcmd_init(&cmd, expanded_cmd.buf);
+		cmd.output = &output;
+		extcmd_run(&cmd);
+		extcmd_release(&cmd);
+		/* TODO puts() adds an extra new line.
+		 * We need to revamp the whole extcmd things in the near future.
+		 * It's currently fundamentally broken.
+		 */
+		puts(output.buf);
+	}
+	strbuf_release(&expanded_cmd);
+	strbuf_release(&output);
+	return 0;
+}
+
 int kleaver_build(void)
 {
 	struct strbuf build_cmd = STRBUF_INIT;
 	struct extcmd cmd;
 	struct dep *dep;
 
+	init_pkg_commit();
 	/* TODO avoid fetching a repo more than once */
 	list_for_each_entry(dep, &all_deps, all_deps)
 		dep_fetch(dep);

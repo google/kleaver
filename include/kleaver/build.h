@@ -12,3 +12,4 @@
 #pragma once
 
 extern int kleaver_build(void);
+extern int kleaver_presubmit(void);

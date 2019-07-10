@@ -13,11 +13,14 @@
 #include <kleaver/config.h>
 #include <kleaver/env.h>
 #include <kleaver/extcmd.h>
+#include <string.h>
 
 int main(int argc, char** argv)
 {
 	/* TODO parse argv */
 	env_init();
 	config_init();
+	if (argc >= 3 && !strcmp(argv[2], "--presubmit"))
+		return kleaver_presubmit();
 	return kleaver_build();
 }

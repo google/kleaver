@@ -30,6 +30,7 @@ void dep_init(struct dep *dep)
 	strbuf_init(&dep->worktree, 0);
 	strbuf_init(&dep->build_cmd, 0);
 	strbuf_init(&dep->build_dir, 0);
+	strbuf_init(&dep->commit, 0);
 }
 
 void dep_release(struct dep *dep)
@@ -41,6 +42,7 @@ void dep_release(struct dep *dep)
 	strbuf_release(&dep->worktree);
 	strbuf_release(&dep->build_cmd);
 	strbuf_release(&dep->build_dir);
+	strbuf_release(&dep->commit);
 }
 
 static void git_init(const char *git_dir)
@@ -169,6 +171,8 @@ void dep_checkout(struct dep *dep)
 	extcmd_run(&cmd);
 	extcmd_release(&cmd);
 	strbuf_trim_trailing_newline(&hash);
+	strbuf_reset(&dep->commit);
+	strbuf_addbuf(&dep->commit, &hash);
 	strbuf_reset(&dep->worktree);
 	strbuf_addstr(&dep->worktree, XDG_CACHE_HOME);
 	strbuf_addstr(&dep->worktree, "/kleaver/v1/worktrees/");
@@ -189,4 +193,35 @@ void dep_checkout(struct dep *dep)
 	strbuf_release(&hash);
 	free(remote);
 	free(git_dir);
+}
+
+void dep_resolve_ref(struct dep *dep)
+{
+	struct strbuf output = STRBUF_INIT;
+	struct extcmd cmd;
+	char* first_tab;
+
+	extcmd_init(&cmd, "git ls-remote");
+	extcmd_arg(&cmd, "%s", dep->repo.buf);
+	if (dep->branch.len) {
+		extcmd_arg(&cmd, "%s", "--heads");
+		extcmd_arg(&cmd, "%s", dep->branch.buf);
+	}
+	else {
+		extcmd_arg(&cmd, "%s", "--tags");
+		extcmd_arg(&cmd, "%s", dep->tag.buf);
+	}
+	cmd.output = &output;
+	extcmd_run(&cmd);
+	extcmd_release(&cmd);
+	/* Trim everything after first tab
+	 * git ls-remote output
+	 * commit_hash<tab>ref_name */
+	first_tab = strchr(output.buf, '\t');
+	if (!first_tab) {
+		/* TODO report error */
+		return;
+	}
+	strbuf_setlen(&output, first_tab - output.buf);
+	dep->commit = output;
 }

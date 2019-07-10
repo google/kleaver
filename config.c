@@ -57,6 +57,7 @@ static bool str_mem_equals(const char *str, const void *buf, size_t len)
 }
 
 extern struct strbuf pkg_build_cmd;
+extern struct strbuf pkg_presubmit_cmd;
 
 void config_init(void)
 {
@@ -66,6 +67,7 @@ void config_init(void)
 	struct dep *dep = NULL;
 
 	get("pkg.buildcmd", &pkg_build_cmd);
+	get("pkg.presubmitCmd", &pkg_presubmit_cmd);
 	get_regexp("^dep\\.", &deps);
 	if (!deps.len)
 		return;
