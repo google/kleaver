@@ -15,6 +15,7 @@
 struct extcmd {
 	struct strbuf	command;
 	struct strbuf	*output;
+	int		exit_status;
 };
 
 extern void extcmd_init(struct extcmd *cmd, const char *cmdline);
