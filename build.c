@@ -89,10 +89,12 @@ static int kleaver_presubmit(void)
 		 * It's currently fundamentally broken.
 		 */
 		puts(output.buf);
+		if (!cmd.ok)
+			break;
 	}
 	strbuf_release(&expanded_cmd);
 	strbuf_release(&output);
-	return 0;
+	return cmd.ok ? 0 : -1;
 }
 
 static DEFINE_bool(presubmit, false, "Use presubmitCmd instead of buildCmd");
@@ -116,17 +118,23 @@ int kleaver_build(void)
 		extcmd_arg(&cmd, "%.*s", dep->build_dir.len, dep->build_dir.buf);
 		extcmd_run(&cmd);
 		extcmd_release(&cmd);
+		if (!cmd.ok)
+			break;
 
 		expand(&dep->build_cmd, dep, &build_cmd);
 		extcmd_init(&cmd, build_cmd.buf);
 		extcmd_run(&cmd);
 		extcmd_release(&cmd);
+		if (!cmd.ok)
+			break;
 
 		expand(&pkg_build_cmd, dep, &build_cmd);
 		extcmd_init(&cmd, build_cmd.buf);
 		extcmd_run(&cmd);
 		extcmd_release(&cmd);
+		if (!cmd.ok)
+			break;
 	}
 	strbuf_release(&build_cmd);
-	return 0;
+	return cmd.ok ? 0 : -1;
 }
