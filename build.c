@@ -14,6 +14,7 @@
 #include <kleaver/dep.h>
 #include <kleaver/env.h>
 #include <kleaver/extcmd.h>
+#include <kleaver/flag.h>
 
 struct strbuf pkg_build_cmd = STRBUF_INIT;
 struct strbuf pkg_presubmit_cmd = STRBUF_INIT;
@@ -67,14 +68,13 @@ static void expand(const struct strbuf *build_cmd, const struct dep *dep,
 		/* TODO report error */;
 }
 
-int kleaver_presubmit(void)
+static int kleaver_presubmit(void)
 {
 	struct strbuf expanded_cmd = STRBUF_INIT;
 	struct strbuf output = STRBUF_INIT;
 	struct extcmd cmd;
 	struct dep *dep;
 
-	init_pkg_commit();
 	list_for_each_entry(dep, &all_deps, all_deps) {
 		dep_resolve_ref(dep);
 		strbuf_reset(&expanded_cmd);
@@ -95,6 +95,8 @@ int kleaver_presubmit(void)
 	return 0;
 }
 
+static DEFINE_bool(presubmit, false, "Use presubmitCmd instead of buildCmd");
+
 int kleaver_build(void)
 {
 	struct strbuf build_cmd = STRBUF_INIT;
@@ -102,6 +104,8 @@ int kleaver_build(void)
 	struct dep *dep;
 
 	init_pkg_commit();
+	if (FLAG_presubmit)
+		return kleaver_presubmit();
 	/* TODO avoid fetching a repo more than once */
 	list_for_each_entry(dep, &all_deps, all_deps)
 		dep_fetch(dep);

@@ -13,6 +13,7 @@
 #include <kleaver/config.h>
 #include <kleaver/env.h>
 #include <kleaver/extcmd.h>
+#include <kleaver/flag.h>
 #include <kleaver/logger.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,12 +29,14 @@ static int kleaver_selftests(void)
 
 int main(int argc, char** argv)
 {
-	/* TODO parse argv */
+	int flags_offset;
+
+	flags_offset = flag_init(argc, argv);
+	argc -= flags_offset;
+	argv += flags_offset;
 	env_init();
 	config_init();
-	if (argc == 2 && !strcmp(argv[1], "selftests"))
+	if (!strcmp(argv[0], "selftests"))
 		return kleaver_selftests();
-	if (argc >= 3 && !strcmp(argv[2], "--presubmit"))
-		return kleaver_presubmit();
 	return kleaver_build();
 }

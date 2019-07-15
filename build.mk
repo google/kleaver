@@ -15,5 +15,6 @@ kleaver-obj += config.o
 kleaver-obj += dep.o
 kleaver-obj += env.o
 kleaver-obj += extcmd.o
+kleaver-obj += flag.o
 kleaver-obj += logger.o
 kleaver-obj += main.o
