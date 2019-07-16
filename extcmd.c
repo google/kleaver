@@ -51,7 +51,6 @@ void extcmd_run(struct extcmd *cmd)
 	strbuf_reset(output);
 	while (strbuf_fread(output, 1000, p) > 0)
 		;
-	/* TODO handle errors properly */
-	cmd->exit_status = pclose(p);
+	pclose(p);
 	strbuf_release(&s);
 }
