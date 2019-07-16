@@ -11,10 +11,12 @@
  */
 #pragma once
 #include <git/strbuf.h>
+#include <stdbool.h>
 
 struct extcmd {
 	struct strbuf	command;
 	struct strbuf	*output;
+	bool		ok;
 };
 
 extern void extcmd_init(struct extcmd *cmd, const char *cmdline);

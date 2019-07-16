@@ -9,10 +9,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  */
+#include <errno.h>
 #include <git/strbuf.h>
 #include <kleaver/extcmd.h>
+#include <kleaver/logger.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void extcmd_init(struct extcmd *cmd, const char *cmdline)
@@ -41,16 +44,32 @@ void extcmd_arg(struct extcmd *cmd, const char *fmt, ...)
 void extcmd_run(struct extcmd *cmd)
 {
 	struct strbuf s = STRBUF_INIT, *output = &s;
+	int status;
 	FILE *p;
 
+	cmd->ok = false;
 	p = popen(cmd->command.buf, "r");
 	if (!p)
-		/* TODO report error */;
+		PLOG_FATAL("%p popen %s", cmd, cmd->command.buf);
+	LOG_INFO("%p %s", cmd, cmd->command.buf);
 	if (cmd->output)
 		output = cmd->output;
 	strbuf_reset(output);
 	while (strbuf_fread(output, 1000, p) > 0)
 		;
-	pclose(p);
+	status = pclose(p);
+	if (status == -1)
+		PLOG_FATAL("%p pclose", cmd);
 	strbuf_release(&s);
+
+	if (WIFEXITED(status))
+		LOG_INFO("%p exited with code %d", cmd, WEXITSTATUS(status));
+	else if (WIFSIGNALED(status))
+		LOG_ERROR("%p killed by signal %d", cmd, WTERMSIG(status));
+	else if (WIFSTOPPED(status))
+		LOG_ERROR("%p stopped by signal %d", cmd, WSTOPSIG(status));
+	else
+		LOG_FATAL("%p terminated with raw status %d", cmd, status);
+
+	cmd->ok = WIFEXITED(status) && !WEXITSTATUS(status);
 }
