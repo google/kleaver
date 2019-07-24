@@ -42,10 +42,15 @@ extern void flag_add(struct flag *);
 	}
 
 extern int flag_parse_bool(const char *in, void *out);
+extern int flag_parse_string(const char *in, void *out);
 
 #define DEFINE_bool(NAME, DEFAULT, HELP)				\
 	DEFINE_FLAG(bool, NAME, DEFAULT, HELP,				\
 		    2 /* optional_argument */, flag_parse_bool)
+
+#define DEFINE_string(NAME, DEFAULT, HELP)				\
+	DEFINE_FLAG(const char*, NAME, DEFAULT, HELP,				\
+		    1 /* required_argument */, flag_parse_string)
 
 /**
  * Parse command-line flags.
