@@ -32,6 +32,13 @@ build_progs: FORCE $(bins)
 .%.o: %.c
 	@echo -e "CC\t$@"
 	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	
+.config.o: include/kleaver/extcmd.h include/kleaver/config.h include/kleaver/dep.h
+.extcmd.o: include/kleaver/extcmd.h
+.main.o: include/kleaver/build.h include/kleaver/config.h include/kleaver/extcmd.h include/kleaver/env.h
+.build.o: include/kleaver/build.h include/kleaver/dep.h include/kleaver/extcmd.h include/kleaver/env.h
+.env.o: include/kleaver/env.h
+.dep.o: include/kleaver/dep.h include/kleaver/env.h include/kleaver/extcmd.h
 
 #
 # The following rule is adapted from:
