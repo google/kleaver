@@ -9,22 +9,49 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  */
+#include <ctype.h>
 #include <git/strbuf.h>
 #include <kleaver/build.h>
 #include <kleaver/dep.h>
 #include <kleaver/env.h>
 #include <kleaver/extcmd.h>
 #include <kleaver/flag.h>
+#include <kleaver/logger.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct strbuf pkg_build_cmd = STRBUF_INIT;
 struct strbuf pkg_presubmit_cmd = STRBUF_INIT;
 
 static struct strbuf pkg_commit = STRBUF_INIT;
 
+static DEFINE_string(pkg_commit, NULL, "package commit hash");
+
+static bool is_valid_commit(const char *commit)
+{
+	int i, len;
+
+	len = strlen(commit);
+	if (len != 40)
+		return false;
+	for (i = 0; i < len; i++)
+		if (!isxdigit(commit[i]))
+			return false;
+	return true;
+}
+
 static void init_pkg_commit(void)
 {
 	struct extcmd cmd;
 
+	if (FLAG_pkg_commit) {
+		if (!is_valid_commit(FLAG_pkg_commit))
+			LOG_FATAL("invalid --pkg_commit %s", FLAG_pkg_commit);
+		strbuf_reset(&pkg_commit);
+		strbuf_addstr(&pkg_commit, FLAG_pkg_commit);
+		return;
+	}
 	extcmd_init(&cmd, "git rev-parse HEAD");
 	cmd.output = &pkg_commit;
 	extcmd_run(&cmd);
