@@ -13,16 +13,19 @@
 #include <kleaver/config.h>
 #include <kleaver/dep.h>
 #include <kleaver/extcmd.h>
+#include <kleaver/flag.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+
+DEFINE_string(config, "Kleaver.config", "Path of Kleaver.config");
 
 static void get_regexp(const char *name_regex, struct strbuf *output)
 {
 	struct extcmd cmd;
 
 	extcmd_init(&cmd, "git config");
-	extcmd_arg(&cmd, "--file=%s", "Kleaver.config");
+	extcmd_arg(&cmd, "--file=%s", FLAG_config);
 	extcmd_arg(&cmd, "--null");
 	extcmd_arg(&cmd, "--get-regexp");
 	extcmd_arg(&cmd, "%s", name_regex);
@@ -36,7 +39,7 @@ static void get(const char *name, struct strbuf *output)
 	struct extcmd cmd;
 
 	extcmd_init(&cmd, "git config");
-	extcmd_arg(&cmd, "--file=%s", "Kleaver.config");
+	extcmd_arg(&cmd, "--file=%s", FLAG_config);
 	extcmd_arg(&cmd, "--null");
 	extcmd_arg(&cmd, "--get");
 	extcmd_arg(&cmd, "%s", name);
