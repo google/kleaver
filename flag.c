@@ -37,12 +37,6 @@ int flag_parse_bool(const char *in, void *out)
 	return -1;
 }
 
-int flag_parse_string(const char *in, void *out)
-{
-	*(const char **)out = in;
-	return 0;
-}
-
 int flag_init(int argc, char **argv)
 {
 	struct option *longopts, *opt;

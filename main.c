@@ -18,10 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static DEFINE_string(self_test_str, "foobar", "Dummy parameter used for selftest");
 static int kleaver_selftests(void)
 {
-	LOG_INFO("The value of self_test_str parameter is %s", FLAG_self_test_str);
 	LOG_INFO("This is an INFO log line: %d", 42);
 	LOG_WARN("This is a warning.");
 	LOG_ERROR("This is an error.");
